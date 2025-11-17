@@ -1,0 +1,11 @@
+{
+  "name": "Fading Occlusion",
+  "package": "fading_occlusion",
+  "author": "Ahmed Elamin",
+  "version": "0.0.1",
+  "mod": 0,
+  "supported": [
+    "anki-24.0"
+  ],
+  "conflicts": []
+}
