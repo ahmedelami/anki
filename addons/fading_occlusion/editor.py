@@ -124,7 +124,7 @@ class ModeSelector(QComboBox):
 
 
 class FadingEditorDialog(QDialog):
-  def __init__(self, parent: QWidget | None = None) -> None:
+  def __init__(self, parent: QWidget | None = None, initial_image: Path | None = None) -> None:
     super().__init__(parent)
     self.setWindowTitle("Fading Occlusion Editor")
     self.resize(1024, 720)
@@ -186,6 +186,8 @@ class FadingEditorDialog(QDialog):
     buttons.addStretch(1)
     buttons.addWidget(self._save_button)
     buttons.addWidget(self._cancel_button)
+    if initial_image and initial_image.exists():
+      self._load_image(initial_image)
     main_layout.addLayout(buttons)
 
   def _populate_decks(self) -> None:
