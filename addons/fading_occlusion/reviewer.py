@@ -380,7 +380,6 @@ def _maybe_reveal_step(reviewer: Reviewer, _old) -> None:
   if state.index + 1 < len(state.steps):
     state.index += 1
     step_number = state.steps[state.index]
-    _hide_controls(card.id)
     _peel_step(card.id, step_number)
     return None
 
