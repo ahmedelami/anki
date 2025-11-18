@@ -64,6 +64,23 @@ RUNTIME_TEMPLATE = """<script>
             setControlsVisible(state.controls, shouldShow);
           }
 
+          function waitForControls(state, attempt = 0) {
+            if (!state || attempt > 10) {
+              return;
+            }
+            if (state.controls && document.body.contains(state.controls)) {
+              updateControls(state);
+              return;
+            }
+            const candidate = findControlsFor(state.overlay);
+            if (candidate) {
+              state.controls = candidate;
+              updateControls(state);
+              return;
+            }
+            requestAnimationFrame(() => waitForControls(state, attempt + 1));
+          }
+
           function showAll(state) {
             state.stepMap.forEach((covers) => {
               covers.forEach((cover) => { cover.style.display = ""; });
@@ -86,8 +103,8 @@ RUNTIME_TEMPLATE = """<script>
             covers.forEach((cover) => { cover.style.display = "none"; });
             if (state.remainingSteps) {
               state.remainingSteps.delete(step);
-              updateControls(state);
             }
+            updateControls(state);
           }
 
           function resetCard(cardId) {
@@ -98,6 +115,12 @@ RUNTIME_TEMPLATE = """<script>
             }
             showAll(state);
             updateControls(state);
+          }
+
+          function hideControls(cardId) {
+            const state = cards.get(cardId);
+            if (!state) { return; }
+            setControlsVisible(state.controls, false);
           }
 
           function registerCard(data) {
@@ -116,32 +139,43 @@ RUNTIME_TEMPLATE = """<script>
               stepMap.get(step).push(cover);
             });
 
-            const steps = Array.isArray(data.steps) ? data.steps : [];
-            const steps = Array.isArray(data.steps) ? data.steps : [];
+            const steps = Array.isArray(data.steps) ? data.steps.map(Number) : [];
             const state = {
+              overlay,
               stepMap,
-              controls: findControlsFor(overlay),
+              controls: null,
               steps,
               remainingSteps: new Set(steps),
             };
             cards.set(data.cardId, state);
+            waitForControls(state);
 
             if (data.context === "reviewQuestion") {
               showAll(state);
             } else {
               hideAll(state);
             }
-            updateControls(state);
           }
 
           return {
             register: registerCard,
             peelStep,
             resetCard,
+            hideControls,
           };
         })();
       }
-      window.foRuntime.register(__PAYLOAD__);
+      const payload = __PAYLOAD__;
+      const runRegistration = () => {
+        if (window.foRuntime) {
+          window.foRuntime.register(payload);
+        }
+      };
+      if (window.requestAnimationFrame) {
+        window.requestAnimationFrame(runRegistration);
+      } else {
+        setTimeout(runRegistration, 0);
+      }
     })();
   </script>"""
 
@@ -346,6 +380,7 @@ def _maybe_reveal_step(reviewer: Reviewer, _old) -> None:
   if state.index + 1 < len(state.steps):
     state.index += 1
     step_number = state.steps[state.index]
+    _hide_controls(card.id)
     _peel_step(card.id, step_number)
     return None
 
@@ -369,6 +404,16 @@ def _reset_card(card_id: int) -> None:
   js = (
     "window.foRuntime && window.foRuntime.resetCard && "
     f"window.foRuntime.resetCard('{card_id}');"
+  )
+  mw.reviewer.web.eval(js)
+
+
+def _hide_controls(card_id: int) -> None:
+  if mw is None or mw.reviewer is None:
+    return
+  js = (
+    "window.foRuntime && window.foRuntime.hideControls && "
+    f"window.foRuntime.hideControls('{card_id}');"
   )
   mw.reviewer.web.eval(js)
 
