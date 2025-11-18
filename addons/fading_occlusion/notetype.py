@@ -93,7 +93,7 @@ def _base_css() -> str:
 
     .fo-cover {
       position: absolute;
-      background: rgba(0, 0, 0, 0.78);
+      background: rgba(0, 0, 0, 1);
       border: 2px solid rgba(255, 255, 255, 0.9);
       box-sizing: border-box;
     }

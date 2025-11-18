@@ -212,7 +212,7 @@ class FadingEditorDialog(QDialog):
   def _add_cover_from_rect(self, rect: QRectF) -> None:
     if rect.width() < 4 or rect.height() < 4:
       return
-    color = QColor(0, 0, 0, 130)
+    color = QColor(0, 0, 0, 255)
     rect_item = QGraphicsRectItem(rect)
     rect_item.setBrush(color)
     rect_item.setPen(QPen(Qt.GlobalColor.white, 2))
